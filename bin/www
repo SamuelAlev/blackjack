@@ -1,0 +1,173 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+const app = require('../app');
+const debug = require('debug')('blackjack:server');
+const server = require('http').createServer(app);
+const socket = require('socket.io');
+const game = require('../game');
+const mongoose = require('mongoose');
+const Rooms = require('../models/rooms.js');
+const Users = require('../models/users.js');
+const Agenda = require('agenda');
+const config = require('../config/database');
+const fs = require('fs');
+const emojione = require('emojione');
+const nodemailer = require('nodemailer');
+const exec = require('child_process').exec;
+
+mongoose.Promise = require('bluebird');
+
+const LOG_FILES_PATH = 'log_files/Room_';
+const rooms = {};
+
+/**
+ * Get port from environment and store in Express.
+ */
+
+const port = 3000;
+app.set('port', port);
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+const io = socket(server.listen(port));
+
+function register(fileName, msg) {
+  msg += '\n';
+  fs.appendFile(`${LOG_FILES_PATH}${fileName}.txt`, msg, (err) => {
+    if (err) throw err;
+  });
+}
+
+async function startGame(id) {
+  usersArr = [];
+
+  rooms[id].players.forEach((user) => {
+    usersArr.push(user.username);
+  });
+
+  const smtpTransport = nodemailer.createTransport({
+    host: 'a hostname', // hostname
+    secureConnection: true, // use SSL
+    port: 465, // port for secure SMTP
+    auth: {
+      user: 'a username',
+      pass: 'a password',
+    },
+  });
+
+  const mailOptions = {
+    to: 'a mail adress',
+    from: 'a mail adress',
+    subject: `Début de la salle #${id}`,
+    text: `La salle #${id} possède ${usersArr.length} joueurs:\n` +
+    `${this.usersArr.toString()}`,
+  };
+  smtpTransport.sendMail(mailOptions);
+
+  Rooms.update({ _id: id }, { $set: { gameHasStarted: true } }).exec();
+  rooms[id].hasStarted = true;
+  rooms[id].initPlayersInfo();
+  rooms[id].setTurns();
+  rooms[id].updateTurnText();
+  rooms[id].setPlayerStartTurn(rooms[id].players[0].getId());
+  io.sockets.to(id).emit('activate stop button');
+  rooms[id].parser();
+}
+
+io.sockets.on('connection', (socket) => {
+  // Client connect
+  socket.on('client connect', (info) => {
+    socket.join(info.room_id);
+    if (!rooms[info.room_id]) {
+      rooms[info.room_id] = new game.Room(io.sockets, info.room_id);
+    }
+    rooms[info.room_id].addPlayer(info.user_id);
+
+    socket.on('parser', (obj) => {
+      rooms[info.room_id].parser(obj);
+    });
+
+    // Chat box
+    socket.on('from client', (data) => {
+      if (data.includes('sam_says: start game ')) {
+        data = data.slice(data.indexOf('sam_says: start game ') + 'sam_says: start game '.length);
+        startGame(data.replace(/\s+/g, ''));
+      } else if (data.includes('sam_says:')) {
+        data = data.slice(data.indexOf('sam_says:') + 'sam_says:'.length);
+        data = `FROM CHAT:${data}`;
+        register(`${LOG_FILES_PATH}${info.room_id}.txt`, data);
+      } else {
+        io.sockets.to(info.room_id).emit('from server', emojione.toImage(data));
+      }
+    });
+
+    // Client disconnect
+    socket.on('disconnect', () => {
+      rooms[info.room_id].dcPlayer(info.user_id);
+    });
+  });
+});
+
+
+/**
+ * Setup scheduler action for 'start'
+*/
+const agenda = new Agenda({ db: { address: config.database, collection: 'schedules' } });
+
+agenda.define('start', (job) => {
+  startGame(job.attrs.data.id);
+});
+
+agenda.on('ready', () => {
+  agenda.start();
+});
+
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  const bind = typeof port === 'string'
+    ? `Pipe ${port}`
+    : `Port ${port}`;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(`${bind} requires elevated privileges`);
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(`${bind} is already in use`);
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+  const addr = server.address();
+  const bind = typeof addr === 'string'
+    ? `pipe ${addr}`
+    : `port ${addr.port}`;
+  debug(`Listening on ${bind}`);
+  const date = new Date();
+  console.log(`[${date.getHours()}:${date.getMinutes()}] [Worker] Listening on ${bind}`);
+}
+
+server.on('error', onError);
+server.on('listening', onListening);

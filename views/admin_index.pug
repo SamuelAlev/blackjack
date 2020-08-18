@@ -1,0 +1,43 @@
+extends layout
+
+block content
+  h1 Panel administrateur
+
+  h2 Maintenance:
+
+  div.form-group
+    button#removeUsers.btn.btn-danger Effacer les utilisateurs des salles
+
+  div.form-group
+    button#reboot.btn.btn-danger Redémarrer le serveur
+
+
+  script.
+    $(document).ready( function () {
+    
+      $('#reboot').on('click', function () {
+        if (confirm('Voulez-vous redémarrer le serveur ?')) {
+          $.ajax({
+            url: '/admin/reboot',
+            timeout: 2000,
+            complete: function() {
+              alert("Merci de rafraîchir la page dans quelques secondes.")
+            }
+          });
+        }
+      })
+
+
+      $('#removeUsers').on('click', function () {
+        if (confirm('Voulez-vous effacer la liste des salles rejointes des utilisateurs ?')) {
+          $.ajax({
+            url: '/admin/clearUsersFromRooms',
+            timeout: 2000,
+            success: function() {
+              window.location = '/admin'
+            }
+          });
+        }
+      })
+    
+    })

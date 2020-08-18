@@ -1,0 +1,89 @@
+doctype html
+html
+  head
+    title= 'TDB > ' + title
+    meta(charset='utf-8')
+
+    //- CSS
+    meta(name='viewport', content='width=device-width, initial-scale=1')
+    link(rel="stylesheet", href="/bower_components/bootstrap/dist/css/bootstrap.min.css")
+    link(rel='stylesheet', href='/stylesheets/style.css')
+    link(rel='stylesheet', href='https://cdn.jsdelivr.net/npm/emojione@3.1.2/extras/css/emojione.min.css')
+    link(rel='stylesheet', href="https://cdn.datatables.net/v/bs4/dt-1.10.16/r-2.2.1/datatables.min.css")
+    block css
+
+    //- Script
+    script(defer src="https://use.fontawesome.com/releases/v5.0.1/js/all.js")
+    script(defer src="https://cdn.jsdelivr.net/npm/emojione@3.1.2/lib/js/emojione.min.js")
+    script(src="/bower_components/jquery/dist/jquery.js")
+    script(src="/bower_components/popper.js/dist/umd/popper.min.js")
+    script(src="/bower_components/bootstrap/dist/js/bootstrap.min.js")
+    script(src="https://cdn.datatables.net/v/bs4/dt-1.10.16/r-2.2.1/datatables.min.js")
+    if user && user.admin === true
+      script(src="/js/admin_delete_methods.js")
+    script(src="/js/main.js")
+    
+  body
+    <!--[if lt IE 9]><style media="screen">.old-browsers{position:relative;background:#fff;width:100%;height:100%;color:#000;font-family:sans-serif;font-size:20px;text-align:center;padding:0;margin:0}.old-browsers h2{padding:20px 0}.old-browsers p,.old-browsers ul{margin:0 auto}.old-browsers p{max-width:700px;padding-b=ottom:50px;line-height:1.4em}.old-browsers ul li{display:inline-block;padding:0 25px}.old-browsers ul li img{width:115px; border: 0;}.old-browsers ul li p{padding-top:15px;color:#249AE1}body{margin:0;padding:0}</style><div class="old-browsers"><h2>Browser out of date.</h2><p>It appears you're running on a very old web browser that we're unable to support. If you would like to view the site you'll need to update your browser. Please choose from any of the following modern browsers. Thanks!</p><ul><li> <a href="https://www.google.com/intl/en/chrome/browser/desktop/index.html#brand=CHMB&utm_campaign=en&utm_source=en-ha-na-us-sk&utm_medium=ha"> <img src="http://kni-labs.github.io/old-browsers/img/chrome_128x128.png" alt="Google Chrome"><p>Google Chrome</p> </a></li><li> <a href="https://www.mozilla.org/en-US/firefox/new/"> <img src="http://kni-labs.github.io/old-browsers/img/firefox_128x128.png" alt="Mozilla Firefox"><p>Mozilla Firefox</p> </a></li><li> <a href="https://support.apple.com/downloads/safari"> <img src="http://kni-labs.github.io/old-browsers/img/safari_128x128.png" alt="Safari"><p>Safari</p> </a></li><li> <a href="http://windows.microsoft.com/en-us/internet-explorer/download-ie"> <img src="http://kni-labs.github.io/old-browsers/img/internet-explorer_128x128.png" alt="Internet Explorer"><p>Internet Explorer</p> </a></li><li> <a href="https://www.microsoft.com/en-us/windows/microsoft-edge"> <img src="http://kni-labs.github.io/old-browsers/img/edge_128x128.png" alt="Internet Explorer"><p>Microsoft Edge</p> </a></li></ul></div><![endif]-->
+    #logoDiv
+      a(href="/")
+        img#logo.mx-auto.d-block(src="/icone.png", alt="", srcset="")
+    //- Début de la navbar
+    nav.navbar.navbar-expand-lg.navbar-dark(style="background-color: #424242;")
+      .container
+        button.navbar-toggler(type='button', data-toggle='collapse', data-target='#navbarSupportedContent', aria-controls='navbarSupportedContent', aria-expanded='false', aria-label='Toggle navigation')
+          span.navbar-toggler-icon
+        #navbarSupportedContent.collapse.navbar-collapse
+          ul.navbar-nav.mr-auto
+            li.nav-item.active
+              a.nav-link(href='/')
+                i.fa.fa-home
+            li.nav-item
+              a.nav-link(href='/rooms') Salles
+            li.nav-item
+              a.nav-link(href='#' target='_blank') CGU & Notice
+            li.nav-item
+              a.nav-link(href='#' target='_blank') Disclaimer
+            li.nav-item
+              a.nav-link(href='#' target='_blank') Privacy Policy
+            li.nav-item
+              a.nav-link(href='#' target='_blank') Contact
+            if user
+              li.nav-item
+                a.nav-link(class='premium-link' href='#' target='_blank' data-user-name='user-'+user.lastName) Devenir Premium
+            if user && user.admin === true
+              li.nav-item.dropdown
+                a#navbarDropdown.nav-link.dropdown-toggle(href='#', role='button', data-toggle='dropdown', aria-haspopup='true', aria-expanded='false') Admin menu
+                .dropdown-menu(aria-labelledby='navbarDropdown')
+                  a.dropdown-item(href='/admin/rooms/') Listes des salles
+                  a.dropdown-item(href='/admin/users/') Listes des utilisateurs
+                  a.dropdown-item(href='/admin/ads/') Listes des pubs
+                  a.dropdown-item(href='/admin/') Maintenance
+          ul.navbar-nav.navbar-right
+            if user
+              img#avatar(src=user.avatar alt="Avatar")
+              li.nav-item.dropdown
+                a.nav-link.dropdown-toggle(data-toggle="dropdown",href="#",role="button") #{user.username}
+                .dropdown-menu
+                  .dropdown-divider
+                  a.dropdown-item(href='/users/logout') Se déconnecter
+            else
+              li.nav-item
+                a.nav-link(href='/users/register') S'inscrire
+              li.nav-item
+                a.nav-link(href='/users/login') Se connecter
+    //- Fin de la navbar
+
+    //- Début du content
+    .container
+      #content
+        != messages('message', locals)
+        if errors
+          each error, i in errors
+            div(class="alert alert-danger") #{error.msg}
+        block content
+      hr
+      footer
+        p &copy; a website - #[a(href='#' target='_blank') Conditions générales] - #[a(href='#' target='_blank') Disclaimer]
+    //- Fin du content
+

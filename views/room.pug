@@ -1,0 +1,422 @@
+extends layout
+
+block content
+  style.
+    #out_messages {
+      overflow-y: auto;
+      background-color: #DDDDDD;
+      text-align: left;
+      height: 400px;
+    }
+  //- Vars: #{user}, #{room}
+
+  main
+    br
+    .alert.alert-danger
+      p Ne pas rafraîchir, ni quitter la page ou verrouiller son téléphone sous peine d'être déclaré forfait !
+    each ad_hori in ads_hori
+      .row.justify-content-center.align-items-center
+        a(href=ad_hori.pointsTo)
+          img(src=ad_hori.link, alt=ad_hori.description style="max-height: 150px;").img-fluid
+    div.row
+      div.col-md-8
+        div#error_msg
+        div#players
+          .table-responsive
+            table.table.table-striped
+              thead
+                tr
+                  th(scope="col") Tour
+                  th(scope="col") Pseudonyme
+                  th(scope="col") Balance
+                  th(scope="col") Bet
+                  th(scope="col") Hand
+                  th(scope="col") Score
+                  th(scope="col") Actions
+              tbody#players_info
+        .progress
+          .progress-bar.progress-bar-striped.bg-success#timer(role='progressbar', style='width: 100%;', aria-valuenow='100', aria-valuemin='0', aria-valuemax='100') Temps restant
+      div.col-md-4
+        p#turnValue
+        table.table(style="display: block; border-bottom: 1px solid #000;")
+          thead
+            tr
+              th(scope="col") Carte de la banque
+              th(scope="col") Score
+          tbody#dealer
+            tr
+              td
+                p.current_hand
+              td
+                p.current_score
+        div.container
+          p Minbet : #{room.min_bet}
+          p Maxbet : #{room.max_bet}
+          p Incrément : #{room.increment_bet}
+        div#out_messages
+        form#message_form
+          .input-group
+            input#user_message.form-control(type='text', placeholder='Entrer un message...')
+            span.input-group-btn
+              button#send_button.btn.btn-secondary(type='submit') Envoyer
+    script(src="/socket.io/socket.io.js")
+    script.
+      var socket = io.connect();
+
+      socket.emit('client connect', {room_id: "#{room._id}", username: "#{user.username}", user_id: "#{user._id}"});
+
+      function bet() {
+        var betValue = parseInt($("##{user.username} .current_bet").val());
+        if (typeof betValue === 'undefined' || isNaN(betValue))
+          betValue = -1;
+        $('##{user.username} .current_bet').replaceWith(
+          '<p class="current_bet"></p>'
+        );
+        $('##{user.username} .action_bet').attr('hidden', true);
+        socket.emit('parser', {bet: betValue});
+      }
+
+      function stand() {
+        socket.emit('parser', {action: 'stand', _action: 'play'});
+      }
+
+      function hit() {
+        socket.emit('parser', {action: 'hit', _action: 'play'});
+      }
+
+      function double() {
+        socket.emit('parser', {action: 'double', _action: 'play'});
+      }
+
+      function split() {
+        socket.emit('parser', {action: 'split', _action: 'play'});
+      }
+
+      function surrender() {
+        socket.emit('parser', {action: 'surrender', _action: 'play'});
+      }
+
+      function even_money() {
+        socket.emit('parser', {action: 'even_money', _action: 'play'});
+      }
+
+      socket.on('desactivate all', function () {
+        $('td input :button').attr('hidden', true);
+        $('#players_info tr').removeClass('bg-success');
+      });
+
+      socket.on('activate start button', function () {
+        $("#start_game").attr('disabled', false);
+        $("#stop_game").attr('disabled', true);
+      });
+
+      socket.on('activate stop button', function () {
+        $("#start_game").attr('disabled', true);
+        $("#stop_game").attr('disabled', false);
+      });
+
+      socket.on('activate bet', function (obj) {
+        if ('#{user.username}' === obj.username) {
+          $('#' + obj.username + ' .current_bet').replaceWith(
+            '<input id=#{user.username} class="current_bet" value=' + obj.defaultBet + '></input>'
+          );
+          $('#' + obj.username + ' .action_bet').attr('hidden', false);
+        }
+      });
+
+      socket.on('ask bet stop', function (obj) {
+        if ("#{user.username}" === obj.username) {
+          bet();
+        }
+      });
+
+      socket.on('ask play stop', function (obj) {
+        if ("#{user.username}" === obj.username) {
+          stand();
+        }
+      });
+
+      socket.on('activate actions', function (obj) {
+        if ("#{user.username}" === obj.username) {
+          obj.validActions.forEach(function(action) {
+            $('#'+obj.username + ' .action_'+action).attr('hidden', false);
+          });
+        }
+      });
+
+      socket.on('activate player hand', function (obj) {
+        if ("#{user.username}" === obj.username) {
+          obj.hands[obj.index] = obj.hands[obj.index];
+        }
+        var res = '';
+        var symbols = ['club', 'diamond', 'pike', 'heart'];
+        obj.hands.forEach(function(hand) {
+          splitsrc = hand.toString().replace(/,/g, ' ');
+          splitval = splitsrc.split(' ').forEach(function(item) {
+          symbol = Math.floor(Math.random() * 4);
+            res += '<img style="width: 40px" src="/images/cards/'+symbols[symbol]+'-'+item+'.png" alt="'+item+'" /> '
+          });
+          res += '<br>';
+        });
+        res = res.substring(0, res.length - 4);
+        $('#' + obj.username + ' .current_hand').html(res);
+      });
+
+      socket.on('activate player bet', function(obj) {
+        if ("#{user.username}" === obj.username) {
+          obj.bets[obj.index] = "<b>" + obj.bets[obj.index] + "</b>";
+        }
+        var res = '';
+        obj.bets.forEach(function(bet) {
+          res += bet.toString().replace(/,/g, ' ');
+          res += '<br>';
+        });
+        res = res.substring(0, res.length - 4);
+        $('#' + obj.username + ' .current_bet').html(res);
+      });
+
+      socket.on('activate player score', function(obj) {
+        if ("#{user.username}" === obj.username) {
+          obj.scores[obj.index] = "<b>" + obj.scores[obj.index] + "</b>";
+        }
+        var res = '';
+        obj.scores.forEach(function(score) {
+          res += score.toString().replace(/,/g, " ");
+          res += '<br>';
+        });
+        res = res.substring(0, res.length - 4);
+        $('#' + obj.username + ' .current_score').html(res);
+      });
+
+      socket.on('desactivate active actions', function(obj) {
+        if ("#{user.username}" === obj.username) {
+          var betView = $('#'+obj.username + ' .current_bet').html();
+          var handView = $('#'+obj.username + ' .current_hand').html();
+          var scoreView = $('#'+obj.username + ' .current_score').html();
+
+          betView = betView.replace(/<b>/g, "");
+          betView = betView.replace(/<\/b>/g, "");
+
+          handView = handView.replace(/<b>/g, "");
+          handView = handView.replace(/<\/b>/g, "");
+
+          scoreView = scoreView.replace(/<b>/g, "");
+          scoreView = scoreView.replace(/<\/b>/g, "");
+
+          $('#'+obj.username + ' .current_bet').html(betView);
+          $('#'+obj.username + ' .current_hand').html(handView);
+          $('#'+obj.username + ' .current_score').html(scoreView);
+        }
+      });
+
+      socket.on('desactivate actions', function() {
+        ['.action_surrender', '.action_stand', '.action_hit',
+        '.action_double', '.action_split', '.action_even_money'].forEach(function(action) {
+          $(action).attr('hidden', true);
+        });
+      });
+
+      socket.on('update player balance', function(obj) {
+        $('#'+obj.username + ' .balance').html(obj.balance);
+      });
+
+      socket.on('update player bets', function(obj) {
+        var betView = '';
+        obj.bets.forEach(function(bet) {
+          betView += bet.toString().replace(/,/g, " ");
+          betView += '<br>';
+        });
+        betView = betView.substring(0, betView.length - 4);
+        $('#'+obj.username + ' .current_bet').html(betView);
+      });
+
+      socket.on('update player hands', function(obj) {
+        var handView = '';
+        obj.hands.forEach(function(hand) {
+          handView += hand.toString().replace(/,/g, " ");
+          handView += '<br>';
+        });
+        handView = handView.substring(0, handView.length - 4);
+        $('#'+obj.username + ' .current_hand').html(handView);
+      });
+
+      socket.on('update player scores', function(obj) {
+        var scoreView = '';
+        obj.scores.forEach(function(score) {
+          scoreView += score.toString().replace(/,/g, " ");
+          scoreView += '<br>';
+        });
+        scoreView = scoreView.substring(0, scoreView.length - 4);
+        if (scoreView == 0) scoreView = '';
+        $('#'+obj.username + ' .current_score').html(scoreView);
+      });
+
+      socket.on('desactivate turns', function() {
+        $('#players_info tr').removeClass('bg-success');
+      });
+
+      socket.on('activate turn', function(obj) {
+        $('#players_info tr').removeClass('bg-success');
+        $('#players_info .input').attr('disabled', true);
+        $('#' + obj.username).addClass('bg-success');
+      });
+
+      socket.on('error msg', function(data) {
+        $('#error_msg').empty();
+        $('#error_msg').append($(document.createElement('p')).
+          html(data));
+      });
+
+      var timer;
+      var time;
+
+      socket.on('desactivate timer', function() {
+        console.log('Desactivate timer')
+        clearInterval(timer);
+        time = 0;
+        $('#timer').html('');
+      });
+
+      socket.on('activate timer', function(timeoutTime) {
+        console.log("Timeouttime: ", timeoutTime || 20);
+        console.log("Of type: ", typeof timeoutTime);
+        time = timeoutTime || 20;
+        $('#timer').attr('aria-valuemax', timeoutTime || 20);
+        timer = setInterval(function() {
+          if (time >= 0) {
+            $('#timer').attr('aria-valuenow', time)
+            $('#timer').attr('style', 'width: ' + time/timeoutTime*100 + "%")
+            $('#timer').attr('class', time > 9 ? 'progress-bar progress-bar-striped bg-success' : (time > 4 ? 'progress-bar progress-bar-striped bg-warning' : 'progress-bar progress-bar-striped bg-danger'))
+            $('#timer').html(time + ' secondes');
+            --time;
+          } else {
+            clearInterval(timer);
+            time = 0;
+          }
+        }, 1000);
+      });
+
+      socket.on('update turn value', function(data) {
+        $('#players_info .turn').each(function() {
+          this.checked = false;
+          this.disabled = true;
+        });
+        $('#' + data.username + ' .turn').prop('checked', true).prop('disabled', false);
+        $('#turnValue').html('Tour ' + data.currentTurn + '/' + data.maxTurns)
+      })
+
+      socket.on('reset bet_hand_score', function() {
+        $('.current_bet').html('');
+        $('.current_hand').html('');
+        $('.current_score').html('');
+      });
+
+      socket.on('rm users', function() {
+        $('#players_info').empty();
+      });
+
+      socket.on('add usr', function(user) {
+        $('#players_info').append(
+          $(document.createElement('tr')).attr('id', user.username));
+
+          // Append checkbox
+          var tdRadio = $(document.createElement('td'));
+          $(tdRadio).append($(document.createElement('input'))
+                                          .attr('type', 'radio')
+                                          .attr('disabled', false)
+                                          .attr('class', 'turn'));
+          $('#' + user.username).append(tdRadio);
+
+          // Append username
+          $('#' + user.username).append($(document.createElement('td'))
+                                .append($(document.createElement('p'))
+                                          .attr('class', 'username')
+                                          .html(user.username)));
+
+          // Append user balance
+          $('#' + user.username).append($(document.createElement('td'))
+                                .append($(document.createElement('p'))
+                                          .attr('class', 'balance')
+                                          .html(user.balance)));
+
+          // Append current bet
+          $('#' + user.username).append($(document.createElement('td'))
+                                .append($(document.createElement('p'))
+                                          .attr('class', 'current_bet')
+                                          .html('')));
+          // Append hand
+          $('#' + user.username).append($(document.createElement('td'))
+                                .append($(document.createElement('p'))
+                                          .attr('class', 'current_hand')
+                                          .html('')));
+          // Append current score
+          $('#' + user.username).append($(document.createElement('td'))
+                                .append($(document.createElement('p'))
+                                          .attr('class', 'current_score')
+                                          .html('')));
+          // Append actions
+          $('#' + user.username).append($(document.createElement('td'))
+                                  .append($(document.createElement('input'))
+                                            .attr('type', 'button')
+                                            .attr('class', 'action_bet')
+                                            .attr('value', 'Bet')
+                                            .attr('hidden', true)
+                                            .click(bet))
+                                  .append($(document.createElement('input'))
+                                            .attr('type', 'button')
+                                            .attr('class', 'action_stand')
+                                            .attr('value', 'Stand')
+                                            .attr('hidden', true)
+                                            .click(stand))
+                                  .append($(document.createElement('input'))
+                                            .attr('type', 'button')
+                                            .attr('class', 'action_hit')
+                                            .attr('value', 'Hit')
+                                            .attr('hidden', true)
+                                            .click(hit))
+                                  .append($(document.createElement('input'))
+                                            .attr('type', 'button')
+                                            .attr('class', 'action_double')
+                                            .attr('value', 'Double')
+                                            .attr('hidden', true)
+                                            .click(double))
+                                  .append($(document.createElement('input'))
+                                            .attr('type', 'button')
+                                            .attr('class', 'action_split')
+                                            .attr('value', 'Split')
+                                            .attr('hidden', true)
+                                            .click(split))
+                                  .append($(document.createElement('input'))
+                                            .attr('type', 'button')
+                                            .attr('class', 'action_surrender')
+                                            .attr('value', 'Surrender')
+                                            .attr('hidden', true)
+                                            .click(surrender))
+                                  .append($(document.createElement('input'))
+                                            .attr('type', 'button')
+                                            .attr('class', 'action_even_money')
+                                            .attr('value', 'Even Money')
+                                            .attr('hidden', true)
+                                            .click(even_money)));
+      });
+
+      // Chat box
+      $('#message_form').submit(function(e) {
+        e.preventDefault();
+        if($('#user_message').val() != "") {
+          socket.emit('from client', '#{user.username}: ' + $('#user_message').val());
+          $('#user_message').val('');
+        } else {
+          alert("Merci d'entrer un message")
+        }
+      });
+
+      socket.on('from server', function(data) {
+        var date = new Date();
+        $('#out_messages').append('[' + date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0') + '] ' + data + '<br>');
+        var audio = new Audio('/message.mp3');
+        audio.play();
+        var elem = document.getElementById('out_messages');
+        elem.scrollTop = elem.scrollHeight;
+      });
+

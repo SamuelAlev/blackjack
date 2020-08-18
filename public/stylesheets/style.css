@@ -1,0 +1,62 @@
+body {
+  background-color: #E9E9E9;
+}
+
+#logo {
+  padding: 10px;
+}
+
+#logoDiv {
+  background-color: #616161;
+}
+
+#content {
+  margin-top: 20px;
+}
+
+.margin {
+  margin-left: 10px;
+}
+
+.alert-error {
+  color: #721c24;
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+}
+
+.dropdown-menu-right {
+  right: 0;
+  left: auto;
+}
+
+#avatar {
+  height: 32px;
+  width: 32px;
+}
+
+.centeredImg {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 50%;
+}
+
+.img128 {
+  height: 128px;
+  width: 128px;
+}
+
+#players_info input[type="button"] {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.premium-link {
+  font-weight: bold;
+  text-decoration: underline
+}
+
+.premium-link[data-user-name*="Premium"]
+{
+  display: none;
+}

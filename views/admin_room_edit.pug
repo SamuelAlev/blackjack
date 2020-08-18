@@ -1,0 +1,36 @@
+extends layout
+
+block content
+  h1 Éditer une salle
+
+  form(method='POST' action='')
+    div.form-group
+      label(for='date') Date:
+      input#date.form-control(type='date' name='date' value=moment(room.open_at).format('YYYY-MM-DD'))
+
+    div.form-group
+      label(for='time') Heure:
+      input#time.form-control(type='time' name='time' value=moment(room.open_at).format('HH:mm'))
+
+    div.form-group
+      label(for='max_player') Nombre de joueurs maximums:
+      input#max_player.form-control(type='text' name='max_player' placeholder="Nombre de joueur max" value=room.max_player)
+
+    div.form-group
+      label(for='balance') Balance de départ:
+      input#max_player.form-control(type='text' name='balance' placeholder="Balance de départ" value=room.balance)
+
+    div.form-group
+      label(for='min_bet') Bet minimum:
+      input#max_player.form-control(type='text' name='min_bet' placeholder="Bet minimum" value=room.min_bet)
+
+    div.form-group
+      label(for='max_bet') Bet maximum:
+      input#max_player.form-control(type='text' name='max_bet' placeholder="Bet maximum" value=room.max_bet)
+
+    div.form-group
+      label(for='increment_bet') Increment value:
+      input#increment_val.form-control(type='text' name='increment_bet' placeholder="Increment bet" value=room.increment_bet)
+
+    div.form-group
+      button.btn.btn-danger(type='submit') Éditer la salle

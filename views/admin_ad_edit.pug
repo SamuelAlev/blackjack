@@ -1,0 +1,27 @@
+extends layout
+
+block content
+  h1 Éditer une publicité
+
+  form(method='POST' action='' enctype="multipart/form-data")
+    div.form-group
+      label(for='location') Emplacement:
+      select(name="location").form-control
+        option(value="list_rooms_horizontal" selected= ad.location == "list_rooms_horizontal") Liste des salles - Horizontal
+        option(value="list_rooms_vertical" selected= ad.location == "list_rooms_vertical") Liste des salles - Vertical
+        option(value="room_horizontal" selected= ad.location == "room_horizontal") Dans la salle - Horizontal
+
+    div.form-group
+      label(for='description') Description:
+      input#description.form-control(type='description' name='description' placeholder="Description de la publicité" value=ad.description)
+
+    div.form-group
+      label(for='link') Image:
+      input#link.form-control-file(type='file' name='link' placeholder="Image" required)
+
+    div.form-group
+      label(for='pointsTo') Pointe vers:
+      input#pointsTo.form-control(type='text' name='pointsTo' placeholder="Lien vers lequel pointe la publicité" value=ad.pointsTo)
+
+    div.form-group
+      button.btn.btn-danger(type='submit') Éditer la publicité

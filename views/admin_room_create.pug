@@ -1,0 +1,36 @@
+extends layout
+
+block content
+  h1 Créer une salle
+
+  form(method='POST' action='')
+    div.form-group
+      label(for='date') Date:
+      input#date.form-control(type='date' name='date')
+
+    div.form-group
+      label(for='time') Heure:
+      input#time.form-control(type='time' name='time')
+
+    div.form-group
+      label(for='max_player') Nombre de joueurs maximum:
+      input#max_player.form-control(type='text' name='max_player' placeholder="Nombre de joueur max" value="7")
+
+    div.form-group
+      label(for='balance') Balance de départ:
+      input#max_player.form-control(type='text' name='balance' placeholder="Balance de départ" value=6000)
+
+    div.form-group
+      label(for='min_bet') Minbet:
+      input#max_player.form-control(type='text' name='min_bet' placeholder="Bet minimum" value=50)
+
+    div.form-group
+      label(for='max_bet') Maxbet:
+      input#max_player.form-control(type='text' name='max_bet' placeholder="Bet maximum" value=2000)
+
+    div.form-group
+      label(for='increment_bet') Incrément:
+      input#increment_bet.form-control(type='text' name='increment_bet' placeholder="Increment bet" value=50)
+
+    div.form-group
+      button.btn.btn-success(type='submit') Créer la salle

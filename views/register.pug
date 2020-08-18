@@ -1,0 +1,41 @@
+extends layout
+
+block content
+  h1 Inscription
+
+  form(method='POST' action='')
+    div.form-group
+      label(for='first_name') Prénom:
+      input#first_name.form-control(type='text' name='first_name' placeholder="Prénom" value=firstName required autofocus)
+
+    div.form-group
+      label(for='last_name') Nom:
+      input#last_name.form-control(type='text' name='last_name' placeholder="Nom" value=lastName required)
+
+    div.form-group
+      label(for='city') Ville:
+      input#city.form-control(type='text' name='city' placeholder="Ville" value=city required)
+
+    div.form-group
+      label(for='username') Pseudonyme:
+      input#username.form-control(type='text' name='username' placeholder="Pseudonyme" value=username required)
+
+    div.form-group
+      label(for='email') Adresse mail:
+      input#email.form-control(type='email' name='email' placeholder="Adresse mail" value=email required)
+
+    div.form-group
+      label(for='password') Mot de passe:
+      input#password.form-control(type='password' name='password' placeholder="Mot de passe" required)
+
+    div.form-group
+      label(for='password2') Confirmation:
+      input#password2.form-control(type='password' name='password2' placeholder="Confirmation du mot de passe" required)
+
+    div.form-group
+      .form-check
+        label.form-check-label(for='cgu')
+        label #[input.form-check-input#cgu(name='cgu' type='checkbox' required)] J'ai lu #[a(href='#' target='_blank') les conditions générales] ainsi #[a(href='#' target='_blank') le disclaimer].
+
+    div.form-group
+      button.btn.btn-success(type='submit') S'inscrire

@@ -1,0 +1,34 @@
+extends layout
+
+block content
+  h1 Éditer un utilisateur
+
+  form(method='POST' action='')
+    img.centeredImg.img128(src=userToModify.avatar alt="Avatar") 
+
+    div.form-group
+      label(for='lastName') Nom:
+      input#date.form-control(name='lastName' value=userToModify.lastName)
+
+    div.form-group
+      label(for='firstName') Prénom:
+      input#time.form-control(name='firstName' value=userToModify.firstName)
+    
+    div.form-group
+      label(for='username') Pseudonyme:
+      input#time.form-control(name='username' value=userToModify.username)
+    
+    div.form-group
+      label(for='email') Adresse mail:
+      input#time.form-control(name='email' value=userToModify.email)
+
+    div.form-group
+      label(for='city') Ville:
+      input#time.form-control(name='city' value=userToModify.city)
+
+    div.form-group
+      label(for='joinedRoom') Inscription à la salle:
+      input#time.form-control(name='joinedRoom' value=userToModify.joinedRoom)
+
+    div.form-group
+      button.btn.btn-danger(type='submit') Éditer l'utilisateur

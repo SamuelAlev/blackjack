@@ -1,0 +1,18 @@
+extends layout
+
+block content
+  h1 Connexion
+
+  form(method='POST' action='')
+    div.form-group
+      label(for='username') Pseudonyme:
+      input#username.form-control(type='text' name='username' placeholder="Pseudonyme" autofocus)
+
+    div.form-group
+      label(for='password') Mot de passe:
+      input#password.form-control(type='password' name='password' placeholder="Mot de passe")
+      a(href='/users/forgot') Mot de passe oublié
+      br
+      a(href='/users/register') Pas de compte ?
+
+    button.btn.btn-success(type='submit') Se connecter

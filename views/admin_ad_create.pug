@@ -1,0 +1,27 @@
+extends layout
+
+block content
+  h1 Créer une publicité
+
+  form(method='POST' action='' enctype="multipart/form-data")
+    div.form-group
+      label(for='location') Emplacement:
+      select#location(name="location").form-control
+        option(value="list_rooms_horizontal") Liste des salles - Horizontal
+        option(value="list_rooms_vertical") Liste des salles - Vertical
+        option(value="room_horizontal") Dans la salle - Horizontal
+
+    div.form-group
+      label(for='description') Description:
+      input#description.form-control(type='description' name='description' placeholder="Description de la publicité")
+
+    div.form-group
+      label(for='link') Image:
+      input#link.form-control-file(type='file' name='link')
+
+    div.form-group
+      label(for='pointsTo') Pointe vers:
+      input#pointsTo.form-control(type='text' name='pointsTo' placeholder="Lien vers lequel pointe la publicité")
+
+    div.form-group
+      button.btn.btn-danger(type='submit') Créer la publicité

@@ -1,0 +1,47 @@
+extends layout
+
+block content
+  each ad_hori in ads_hori
+    .row.justify-content-center.align-items-center
+      a(href=ad_hori.pointsTo)
+        img(src=ad_hori.link, alt=ad_hori.description style="max-height: 150px;").img-fluid
+  h1 Liste des salles
+  br
+  .row
+    .col-md-9
+      .row
+        if rooms.length != 0
+          each room, i in rooms
+            if moment().diff(moment(room.open_at), 'hours') < 0
+              .col-sm-4
+                .card.text-white.bg-dark.mb-3
+                  .card-header ##{room._id}
+                  img.card-img-top(src="/fond.jpg")
+                  .card-body
+                    h4.card-title Salle ##{i+1} (#{room.joinedPlayersId.length}/#{room.max_player})
+                    p.card-text #{room.max_player - room.joinedPlayersId.length} place(s) restantes
+                    p.card-text #{moment(room.open_at).format('D MMMM YYYY, HH:mm')} (#{moment(room.open_at).from(moment())})
+            else
+              .col-sm-4
+                .card.bg-light.mb-3
+                  .card-header ##{room._id}
+                  img.card-img-top(src="/fond.jpg")
+                  .card-body
+                    h4.card-title Salle ##{i+1} (#{room.joinedPlayersId.length}/#{room.max_player})
+                    p.card-text #{room.max_player - room.joinedPlayersId.length} place(s) restantes
+                    p.card-text #{moment(room.open_at).format('D MMMM YYYY, HH:mm')} (#{moment(room.open_at).from(moment())})
+                    if user.joinedRoom == room._id
+                      a.btn.btn-success(href="/rooms/" + room._id) Rejoindre
+                      a &nbsp;
+                      a.btn.btn-danger(href="/rooms/leave/" + room._id) Abandonner
+                    else if !user.joinedRoom && room.joinedPlayersId.length < room.max_player
+                      a.btn.btn-success(href="/rooms/" + room._id) Rejoindre
+                    else
+                      a.btn.btn-success.disabled(href="/rooms/" + room._id) Rejoindre
+              br
+        else
+          p Aucune salle de disponible...
+    .col-md-3
+      each ad_vert in ads_vert
+        a(href=ad_vert.pointsTo)
+          img(src=ad_vert.link, alt=ad_vert.description).img-fluid
